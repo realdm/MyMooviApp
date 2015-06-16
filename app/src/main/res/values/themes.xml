@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+   <style name="MyAppTheme" parent="MyMovieAppTheme.Base"/>
+
+   <style name="MyMovieAppTheme.Base" parent="Theme.AppCompat.NoActionBar">
+
+        <item name="colorPrimary">@color/primaryColor</item>
+
+        <item name="colorPrimaryDark">@color/primaryDark</item>
+
+       <item name="android:windowBackground">@android:color/white</item>
+
+   </style>
+
+
+
+
+</resources>

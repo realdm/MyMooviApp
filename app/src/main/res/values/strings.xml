@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">MyMooviApp</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+
+    <array name="movie_query_types">
+
+        <item>Popular</item>
+
+        <item>Top Rated</item>
+
+    </array>
+    <string name="title_activity_movie_details">MovieDetails</string>
+</resources>
