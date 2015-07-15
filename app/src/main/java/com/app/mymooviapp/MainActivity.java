@@ -1,117 +1,268 @@
 package com.app.mymooviapp;
 
+import android.content.Intent;
+import android.content.res.Configuration;
+import android.graphics.drawable.Drawable;
+import android.os.PersistableBundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.app.mymooviapp.fragments.MovieDetailsFrag;
 import com.app.mymooviapp.fragments.MovieThumbsFragment;
+import com.app.mymooviapp.handlers.MovieHandler;
+import com.app.mymooviapp.models.Movie;
+import com.app.mymooviapp.utils.Constants;
+import com.squareup.picasso.Picasso;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MovieThumbsFragment.OnMovieSelected,MovieDetailsFrag.OnMovieFavorited {
+
+
+    private Fragment thumbnailsFragment;
+
+    private Fragment movieDetailsFragment;
+
+    private FrameLayout mFragmentContainer;
+
+    private Toolbar  mToolbar;
+
+    private Menu mToolbarMenu;
 
     private String[] typeQueries;
 
-    private Toolbar mToolbar;
-
     private Spinner mQuerySpinner;
 
-    private Fragment fragment;
+    private String THUMB_FRAG_TAG;
 
-    private Bundle fragARgs;
+    private String DETAILS_FRAG_TAG;
 
-    public  static final String QUERY_TYPE_KEY="isPopular";
+    private boolean isTwoPane = false;
+
+    //HEader Fields
+    private View mHeaderLayout;
+
+    private ImageView headerImageView;
+
+    private TextView mCurentRating;
+
+    private TextView maxRating;
+
+    //Static Fields
+    public  static final String QUERY_TYPE_KEY="key";
+
+    public static final String QUERY_TYPE_POPULAR="popular";
+
+    public static final String QUERY_TYPE_TOP_RATED="topRated";
+
+    public static final String QUERY_TYPE_FAVORITED="favorited";
+
+    private static final String MOVIE_FRAG_TAG="movie_frag_tag";
+
+    private static final String SPINNER_CURRENT_POS="currentPos";
+
+    private static final String CONFIG_CHANGES_KEY="configChanges";
+
+    private Movie mSelectedMovie;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        setUpToolbar();
+        mFragmentContainer = (FrameLayout) findViewById(R.id.container);
 
-        fragARgs = new Bundle();
+        isTwoPane = mFragmentContainer==null?true:false;
 
-        fragARgs.putBoolean(QUERY_TYPE_KEY,true);
+        THUMB_FRAG_TAG = getResources().getString(R.string.thumbnail_frag_tag);
 
-        fragment = new MovieThumbsFragment();
+        DETAILS_FRAG_TAG = getResources().getString(R.string.movie_details_frag_tag);
 
-        fragment.setArguments(fragARgs);
+        if(isTwoPane) {
 
+            thumbnailsFragment = (MovieThumbsFragment)getSupportFragmentManager().findFragmentByTag(THUMB_FRAG_TAG);
 
+            movieDetailsFragment = (MovieDetailsFrag)getSupportFragmentManager().findFragmentByTag(DETAILS_FRAG_TAG);
 
-        getSupportFragmentManager().beginTransaction().add(R.id.container,fragment).commit();
+            mHeaderLayout = findViewById(R.id.headerLayout);
+
+            headerImageView = (ImageView)mHeaderLayout.findViewById(R.id.header);
+
+            mCurentRating = (TextView)mHeaderLayout.findViewById(R.id.current_rating);
+
+            maxRating = (TextView)mHeaderLayout.findViewById(R.id.max_rating);
+
+        }
+        else {
+
+            thumbnailsFragment = MovieThumbsFragment.newInstance();
+
+            getSupportFragmentManager().beginTransaction().replace(R.id.container,thumbnailsFragment,THUMB_FRAG_TAG).commit();
+        }
+
+        setUpToolbar(isTwoPane);
+
     }
 
 
-    public void setUpToolbar()
+    public void setUpToolbar(boolean isTwoPane)
     {
-            mToolbar = (Toolbar)findViewById(R.id.toolbar);
+        mToolbar = (Toolbar)findViewById(R.id.toolbar);
 
-            typeQueries = getResources().getStringArray(R.array.movie_query_types);
+        if(isTwoPane){
 
-            mQuerySpinner = (Spinner)findViewById(R.id.query_type);
+            mToolbar.inflateMenu(R.menu.menu_movie_details);
 
-            final ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,android.R.layout.simple_spinner_dropdown_item,typeQueries);
-
-            mQuerySpinner.setAdapter(adapter);
-
-            mQuerySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            mToolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
                 @Override
-                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                public boolean onMenuItemClick(MenuItem item) {
 
-                    String item = adapter.getItem(i);
+                    switch (item.getItemId()) {
+                        case R.id.action_favorite: {
 
-                    boolean isPopular = true;
+                            ((MovieDetailsFrag) movieDetailsFragment).favoriteMovie();
 
-                    if(i==1)
-                    {
-                        isPopular = false;
+                            break;
+                        }
+
                     }
-
-                    if(fragARgs!=null)
-                    {
-                        fragARgs.putBoolean(QUERY_TYPE_KEY,isPopular);
-                    }
-
-                    ((MovieThumbsFragment)fragment).restartLoader(fragARgs);
-
-                }
-
-                @Override
-                public void onNothingSelected(AdapterView<?> adapterView) {
-
+                    return true;
                 }
             });
 
-
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+            mToolbarMenu = mToolbar.getMenu();
         }
 
-        return super.onOptionsItemSelected(item);
+        typeQueries = getResources().getStringArray(R.array.movie_query_types);
+
+        mQuerySpinner = (Spinner)findViewById(R.id.query_type);
+
+        final ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,android.R.layout.simple_spinner_dropdown_item,typeQueries);
+
+        mQuerySpinner.setAdapter(adapter);
+
+        mQuerySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+
+
+                String queryType = "";
+                switch (i) {
+                    case 0:
+                        queryType = QUERY_TYPE_POPULAR;
+                        break;
+                    case 1:
+                        queryType = QUERY_TYPE_TOP_RATED;
+                        break;
+                    case 2:
+                        queryType = QUERY_TYPE_FAVORITED;
+                }
+
+                Bundle bundle = new Bundle();
+
+
+                bundle.putString(QUERY_TYPE_KEY, queryType);
+
+                ((MovieThumbsFragment) thumbnailsFragment).restartLoader(bundle);
+
+            }
+
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+
+
+
     }
+
+
+    @Override
+    public void onMovieSelected(int moviePosition, Movie movie) {
+
+        Bundle bundle = new Bundle();
+
+        bundle.putParcelable("movie", movie);
+
+
+
+        if(isTwoPane) {
+            //send data to the other fragment
+            mHeaderLayout.setVisibility(View.VISIBLE);
+
+            String backdropUrl = Constants.BACKDROP_URL_BASE_PATH+movie.getBackDropPath();
+
+            Picasso.with(getApplicationContext()).load(backdropUrl).into(headerImageView);
+
+            float rating = movie.getUserRating();
+
+            if(rating > 9){
+                maxRating.setVisibility(View.GONE);
+
+            }
+            else{
+                if(maxRating.getVisibility() != View.VISIBLE){
+                    maxRating.setVisibility(View.VISIBLE);
+
+                }
+            }
+            mCurentRating.setText(Float.toString(rating));
+
+
+            ((MovieDetailsFrag)movieDetailsFragment).loadMovieDetails(bundle);
+        }
+        else {
+            Intent intent = new Intent(this, MovieDetails.class);
+
+            intent.putExtras(bundle);
+
+            startActivity(intent);
+        }
+    }
+
+    @Override
+    public void onMovieFavorite(boolean isFavorite) {
+
+        tintFavoriteStar(isFavorite);
+    }
+
+    public void tintFavoriteStar(boolean favorite)
+    {
+        Log.i("MainActivity","Inside favorite and values is: "+favorite);
+
+        MenuItem item = mToolbarMenu.findItem(R.id.action_favorite);
+
+        Drawable icFavorite =  DrawableCompat.wrap(item.getIcon());
+
+        int color = 0;
+
+        if(favorite) {
+            color  = getResources().getColor(R.color.colorYellow);
+        }
+        else{
+            color = getResources().getColor(R.color.white);
+            Log.i("MainActivity","Tinted white");
+        }
+
+        DrawableCompat.setTint(icFavorite, color);
+
+    }
+
+
 }

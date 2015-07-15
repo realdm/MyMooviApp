@@ -1,26 +1,28 @@
 package com.app.mymooviapp.fragments;
 
-import android.content.Intent;
+import android.animation.Animator;
+import android.animation.ObjectAnimator;
+import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
-import android.widget.Toast;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.app.mymooviapp.MainActivity;
-import com.app.mymooviapp.MovieDetails;
 import com.app.mymooviapp.R;
 import com.app.mymooviapp.adapters.MovieGridAdapter;
 import com.app.mymooviapp.loaders.MovieAsyncLoader;
 import com.app.mymooviapp.models.Movie;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -30,11 +32,47 @@ public class MovieThumbsFragment extends Fragment implements LoaderManager.Loade
 
     private GridView mMoviesGrid;
 
+    private View mEmptyScreen;
+
+    private View mProgressBar;
+
+    private ImageView emptyScreenIcon;
+
+    private TextView emptyScreenText;
+
+    private TextView mTryAgainButton;
+
     private MovieGridAdapter mMovieGridAdapter;
 
     private Bundle bundle;
 
     private boolean firstLoad = true;
+
+    private String queryType;
+
+    private List<Movie> movies = new ArrayList<Movie>();
+
+    private OnMovieSelected mMovieSelectedCallbacks;
+
+    private static final int LOADER_ID=1;
+
+    public static MovieThumbsFragment newInstance()
+    {
+        return new MovieThumbsFragment();
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+
+        try{
+            mMovieSelectedCallbacks = (OnMovieSelected)activity;
+        }
+        catch(Exception e){
+
+        }
+    }
+
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -42,22 +80,21 @@ public class MovieThumbsFragment extends Fragment implements LoaderManager.Loade
 
         mMovieGridAdapter = new MovieGridAdapter(getActivity());
 
-        bundle = getArguments();
+    }
 
-        getLoaderManager().initLoader(1,bundle,this).forceLoad();
-
-
-
-
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(bundle!=null){
+            restartLoader(bundle);
+        }
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-
         return inflater.inflate(R.layout.fragment_movies,container,false);
     }
-
 
 
     @Override
@@ -65,33 +102,47 @@ public class MovieThumbsFragment extends Fragment implements LoaderManager.Loade
 
         mMoviesGrid = (GridView)view.findViewById(R.id.movies_grid);
 
+        mMoviesGrid.setAdapter(mMovieGridAdapter);
+
+        mEmptyScreen = view.findViewById(R.id.error_screen);
+
+        emptyScreenIcon = (ImageView)mEmptyScreen.findViewById(R.id.error_icon);
+
+        emptyScreenText = (TextView)mEmptyScreen.findViewById(R.id.error_desc);
+
+        mTryAgainButton = (TextView)mEmptyScreen.findViewById(R.id.try_again);
+
+        mTryAgainButton.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                restartLoader(bundle);
+            }
+        });
+
+        mProgressBar = view.findViewById(R.id.loading_spinner);
+
         mMoviesGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
 
-                Movie movie = (Movie)mMovieGridAdapter.getItem(i);
+                Movie movie = (Movie) mMovieGridAdapter.getItem(i);
 
-                Intent intent = new Intent(getActivity(), MovieDetails.class);
+                mMovieSelectedCallbacks.onMovieSelected(i,movie);
 
-                Bundle bundle = new Bundle();
-
-                bundle.putSerializable("movie",movie);
-
-                intent.putExtras(bundle);
-
-                getActivity().startActivity(intent);
             }
         });
+
+        if(savedInstanceState!=null) {
+            mMovieGridAdapter.swapData(movies);
+        }
     }
 
     @Override
     public Loader<List<Movie>> onCreateLoader(int id, Bundle args) {
 
+        queryType = args.getString(MainActivity.QUERY_TYPE_KEY);
 
-        boolean isPopular = args.getBoolean(MainActivity.QUERY_TYPE_KEY);
-
-
-        MovieAsyncLoader loader = new MovieAsyncLoader(getActivity(),isPopular);
+        MovieAsyncLoader loader = new MovieAsyncLoader(getActivity(),queryType);
 
         return loader;
     }
@@ -99,24 +150,38 @@ public class MovieThumbsFragment extends Fragment implements LoaderManager.Loade
     @Override
     public void onLoadFinished(Loader<List<Movie>> loader, List<Movie> data) {
 
-        if(data!=null)
-        {
-            if(data.size()>0)
-            {
+        String emptyText = "";
+        if(data!=null) {
+
+            if(data.size()>0) {
+
                 mMovieGridAdapter.swapData(data);
-                mMoviesGrid.setAdapter(mMovieGridAdapter);
-                firstLoad = false;
+
+                this.movies = data;
+
+                crossfade(mMoviesGrid,mProgressBar);
             }
-            else
-            {
-                Log.i("MovieThumbFragment", "Empty list");
+            else {
+
+                if(queryType == MainActivity.QUERY_TYPE_FAVORITED){
+
+                    emptyText = getResources().getString(R.string.error_empty_favorited);
+
+                    customizeEmptyScreen(R.drawable.no_movie, emptyText, false);
+                }
+                else{
+                    emptyText = getResources().getString(R.string.error_no_connection);
+
+                    customizeEmptyScreen(R.drawable.cloud_error, emptyText, true);
+                }
+                crossfade(mEmptyScreen, mProgressBar);
             }
         }
-        else
-        {
-            Log.i("MovieThumbFragment", "null list");
+        else {
+            crossfade(mEmptyScreen,mProgressBar);
         }
 
+        firstLoad = false;
     }
 
     @Override
@@ -124,14 +189,57 @@ public class MovieThumbsFragment extends Fragment implements LoaderManager.Loade
 
     }
 
+    public void customizeEmptyScreen(int showingIcon, String text, boolean canRetry){
+
+        emptyScreenIcon.setImageDrawable(getResources().getDrawable(showingIcon));
+
+        emptyScreenText.setText(text);
+
+        if(canRetry == false){
+            mTryAgainButton.setVisibility(View.GONE);
+        }
+        else {
+            mTryAgainButton.setVisibility(View.VISIBLE);
+        }
+    }
 
     public void restartLoader(Bundle bundle)
     {
-        if(firstLoad==false)
-        {
-            getLoaderManager().restartLoader(1,bundle,this).forceLoad();
-            mMovieGridAdapter.cleanData();
+        this.bundle = bundle;
+
+        if(firstLoad == false) {
+
+                if(mEmptyScreen.getVisibility() == View.VISIBLE){
+
+                    crossfade(mProgressBar,mEmptyScreen);
+                }
+                else{
+
+                    crossfade(mProgressBar,mMoviesGrid);
+                }
+
+                getLoaderManager().restartLoader(LOADER_ID, bundle, this).forceLoad();
         }
+        else {
+
+            getLoaderManager().initLoader(LOADER_ID, bundle, this).forceLoad();
+
+            firstLoad = false;
+
+        }
+
+    }
+
+    public interface OnMovieSelected{
+
+        public void onMovieSelected(int moviePosition, Movie movie);
+    }
+
+    private void crossfade(final View mContentView,final View mLoadingView) {
+
+        mContentView.setVisibility(View.VISIBLE);
+
+        mLoadingView.setVisibility(View.GONE);
 
     }
 }

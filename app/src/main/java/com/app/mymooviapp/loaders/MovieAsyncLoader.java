@@ -1,10 +1,14 @@
 package com.app.mymooviapp.loaders;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.support.v4.content.AsyncTaskLoader;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
+import com.app.mymooviapp.MainActivity;
+import com.app.mymooviapp.data.MovieContract;
+import com.app.mymooviapp.handlers.MovieHandler;
 import com.app.mymooviapp.models.Movie;
 import com.app.mymooviapp.utils.Constants;
 import com.squareup.okhttp.OkHttpClient;
@@ -26,7 +30,7 @@ public class MovieAsyncLoader extends AsyncTaskLoader<List<Movie>> {
 
     private Context mContext;
 
-    private boolean isPoplular = true;
+    private String queryType;
 
     private StringBuilder urlBuilder;
 
@@ -43,13 +47,17 @@ public class MovieAsyncLoader extends AsyncTaskLoader<List<Movie>> {
 
     private final String RATING_KEY="vote_average";
 
+    private final String MOVIE_ID="id";
 
-    public MovieAsyncLoader(Context context, boolean isPopular) {
+    private final String BACK_DROP_PATH="backdrop_path";
+
+
+    public MovieAsyncLoader(Context context, String queryType) {
         super(context);
 
         activtiy = (AppCompatActivity)mContext;
 
-        this.isPoplular = isPopular;
+        this.queryType = queryType;
     }
 
     @Override
@@ -57,15 +65,29 @@ public class MovieAsyncLoader extends AsyncTaskLoader<List<Movie>> {
 
         List<Movie> movies = new ArrayList<Movie>();
 
-        String url = buildUrl(isPoplular);
-        try
-        {
-            movies = loadedMovies(loadMovies(url));
+
+        Log.i("MovieSyncLoader","QueryType is: "+queryType);
+        if(!queryType.equals(MainActivity.QUERY_TYPE_FAVORITED)) {
+            //make request to API
+            String url = buildUrl(queryType);
+            try
+            {
+                movies = loadedMovies(loadMovies(url));
+            }
+            catch(IOException e)
+            {
+
+            }
         }
-        catch(IOException e)
-        {
+        else{
+            //load favorited movies
+
+            Log.i("MovieSync Adapter","Loading movie from database");
+            movies = loadFavoritedMovies();
 
         }
+
+
 
         return movies;
     }
@@ -87,19 +109,17 @@ public class MovieAsyncLoader extends AsyncTaskLoader<List<Movie>> {
 
 
 
-    public String buildUrl(boolean isPoplular)
+    public String buildUrl(String queryType)
     {
         urlBuilder = new StringBuilder(Constants.BASE_URL);
-        if(isPoplular)
-        {
+
+        if(queryType.equals(MainActivity.QUERY_TYPE_POPULAR)) {
             urlBuilder.append(Constants.POPULAR_DESC_PARAMETER).append("&api_key="+ Constants.API_KEY);
         }
-        else
-        {
+        else {
+
             urlBuilder.append(Constants.VOTED_DESC).append("&api_key="+ Constants.API_KEY);
         }
-
-        Log.i("MovieSyncLoader", "The url to query is: " + urlBuilder.toString());
 
         return urlBuilder.toString();
     }
@@ -121,14 +141,15 @@ public class MovieAsyncLoader extends AsyncTaskLoader<List<Movie>> {
 
                 JSONObject singleMovie = results.getJSONObject(i);
 
+                int id = singleMovie.getInt(MOVIE_ID);
                 String title = singleMovie.getString(TITLE_KEY);
                 String overview = singleMovie.getString(SYNOPSIS_KEY);
                 String releaseDate = singleMovie.getString(RELEASE_DATE_KEY);
                 String posterPath = singleMovie.getString(POSTER_PATH_KEY);
                 int rating = singleMovie.getInt(RATING_KEY);
+                String backDropPath = singleMovie.getString(BACK_DROP_PATH);
 
-                Movie movie = new Movie(title,overview,releaseDate,posterPath,rating);
-
+                Movie movie = new Movie(id,title,overview,releaseDate,posterPath,rating,backDropPath);
 
                 loadedMovies.add(movie);
             }
@@ -140,6 +161,25 @@ public class MovieAsyncLoader extends AsyncTaskLoader<List<Movie>> {
 
         return loadedMovies;
 
+    }
+
+    public List<Movie> loadFavoritedMovies()
+    {
+        Cursor mLoadedMovies = getContext().getContentResolver().query(MovieContract.Movie.CONTENT_URI,null,null,null,null,null);
+
+        List<Movie> movies = new ArrayList<Movie>();
+
+        if(mLoadedMovies!=null){
+            while(mLoadedMovies.moveToNext()){
+
+                Movie movie = MovieHandler.constructMovieFromCursor(mLoadedMovies);
+
+                movies.add(movie);
+            }
+        }
+
+        Log.i("MovieSyncAdapter","Loaded Movie: "+movies.size());
+        return movies;
     }
 
 

@@ -11,7 +11,9 @@
         android:theme="@style/MyAppTheme" >
         <activity
             android:name=".MainActivity"
-            android:label="@string/app_name" >
+            android:label="@string/app_name"
+            android:launchMode="singleTop"
+            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -28,6 +30,10 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.app.mymooviapp.MainActivity" />
         </activity>
+
+        <provider
+            android:authorities="com.app.mymooviapp"
+            android:name=".data.MovieProvider"/>
     </application>
 
 </manifest>

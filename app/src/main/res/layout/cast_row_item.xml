@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_margin="8dp"
+    android:padding="8dp"
+
+    >
+
+    <ImageView
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:scaleType="centerInside"
+        android:id="@+id/cast_profile"
+        />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/cast_profile"
+            android:layout_marginLeft="16dp"
+            android:id="@+id/actor_name"
+            android:text="Jhon Doe"
+            android:textColor="@android:color/black"
+            android:alpha="0.87"
+            />
+
+     <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+         android:layout_below="@+id/actor_name"
+        android:layout_toRightOf="@id/cast_profile"
+        android:layout_marginLeft="16dp"
+        android:id="@+id/actor_character"
+        android:text="Jhon Doe"
+        android:textColor="@android:color/black"
+        android:alpha="0.87"
+        />
+
+
+</RelativeLayout>

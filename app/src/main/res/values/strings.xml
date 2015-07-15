@@ -10,6 +10,36 @@
 
         <item>Top Rated</item>
 
+        <item>Favorited</item>
+
     </array>
     <string name="title_activity_movie_details">MovieDetails</string>
+
+    <string name="trailler_label">Traillers</string>
+
+    <string name="cast_label">Cast</string>
+
+    <string name="genre_label">Genres</string>
+
+    <string name="label_release">Released</string>
+
+    <string name="character_as_label">as</string>
+
+    <string name="label_duration">Duration</string>
+
+    <string name="director_label">Director</string>
+
+    <string name="cast_label_info">Cast</string>
+
+    <string name="sinopse_label">Overview</string>
+
+    <string name="thumbnail_frag_tag">ThumbnailFragment</string>
+
+    <string name="movie_details_frag_tag">MovieDetailsFrag</string>
+
+    <string name="error_no_connection">We think Chuck Norris could Help you now!</string>
+
+    <string name="error_empty_favorited">Click the Star inside a Movie to Favorite</string>
+    <string name="movie_error_no_cast">No Casts Available for this Movie!</string>
+
 </resources>

@@ -1,0 +1,62 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:minHeight="?attr/actionBarSize"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:background="@color/primaryColor"
+        >
+
+
+        <Spinner
+            android:id="@+id/query_type"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="72dp"
+            />
+
+        </android.support.v7.widget.Toolbar>
+    
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:layout_below="@+id/toolbar"
+        >
+
+        <fragment
+            android:layout_width="@dimen/thumbs_frag_with"
+            android:layout_height="match_parent"
+            android:tag="@string/thumbnail_frag_tag"
+            android:name="com.app.mymooviapp.fragments.MovieThumbsFragment"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        >
+
+        <include layout="@layout/movie_details_header_layout" android:id="@+id/headerLayout"
+            android:visibility="gone"
+            />
+
+        <fragment
+            android:layout_marginTop="8dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:tag="@string/movie_details_frag_tag"
+            android:name="com.app.mymooviapp.fragments.MovieDetailsFrag"/>
+
+    </LinearLayout>
+
+    </LinearLayout>
+
+
+
+
+</RelativeLayout>

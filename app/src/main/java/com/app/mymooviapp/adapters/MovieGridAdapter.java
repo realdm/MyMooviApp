@@ -1,6 +1,7 @@
 package com.app.mymooviapp.adapters;
 
 import android.content.Context;
+import android.database.DataSetObserver;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,6 +36,7 @@ public class MovieGridAdapter extends BaseAdapter {
     public void swapData(List<Movie> newMovies)
     {
         this.movies = newMovies;
+        notifyDataSetChanged();
     }
 
     public void cleanData()
@@ -80,7 +82,6 @@ public class MovieGridAdapter extends BaseAdapter {
         String imgUrl = Constants.THUMB_URL_BASE_PATH+movies.get(i).getPosterPath();
         //set image using picasso
 
-        Log.i("MovieGridAdapter", "Url: " + imgUrl);
 
         Picasso.with(mContext).load(imgUrl).into(holder.mMoviePoster);
 
@@ -96,5 +97,11 @@ public class MovieGridAdapter extends BaseAdapter {
         {
              mMoviePoster  = (ImageView)view.findViewById(R.id.movie_thumbnail);
         }
+    }
+
+    @Override
+    public void registerDataSetObserver(DataSetObserver observer) {
+        super.registerDataSetObserver(observer);
+        
     }
 }

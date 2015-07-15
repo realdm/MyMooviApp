@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+    <ScrollView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        >
+
+
+
+    <RelativeLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        >
+
+        <include layout="@layout/layout_details_content"
+            android:id="@+id/layout_details"
+            android:visibility="invisible"
+            />
+
+        <ProgressBar android:id="@+id/loading_spinner"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_centerInParent="true"
+            android:layout_gravity="center"
+            android:visibility="invisible"
+            />
+
+        <include layout="@layout/layout_error_loading"
+            android:id="@+id/error_screen"
+            android:layout_height="match_parent"
+            android:layout_width="match_parent"
+            android:layout_centerInParent="true"
+            android:visibility="invisible"
+            />
+
+    </RelativeLayout>
+
+
+
+    </ScrollView>
+
