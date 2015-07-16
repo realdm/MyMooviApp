@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -56,6 +57,8 @@ public class MovieThumbsFragment extends Fragment implements LoaderManager.Loade
 
     private static final int LOADER_ID=1;
 
+    private final String MOVIES_KEY="movies";
+
     public static MovieThumbsFragment newInstance()
     {
         return new MovieThumbsFragment();
@@ -80,6 +83,11 @@ public class MovieThumbsFragment extends Fragment implements LoaderManager.Loade
 
         mMovieGridAdapter = new MovieGridAdapter(getActivity());
 
+        if(savedInstanceState!=null){
+            bundle = savedInstanceState;
+
+        }
+
     }
 
     @Override
@@ -96,6 +104,11 @@ public class MovieThumbsFragment extends Fragment implements LoaderManager.Loade
         return inflater.inflate(R.layout.fragment_movies,container,false);
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+         outState.putParcelableArrayList(MOVIES_KEY, (ArrayList<Movie>) movies);
+
+    }
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
@@ -205,9 +218,17 @@ public class MovieThumbsFragment extends Fragment implements LoaderManager.Loade
 
     public void restartLoader(Bundle bundle)
     {
-        this.bundle = bundle;
 
-        if(firstLoad == false) {
+        movies = bundle.getParcelableArrayList(MOVIES_KEY);
+
+        if(movies!=null){
+            mMovieGridAdapter.swapData(movies);
+        }
+        else{
+
+            this.bundle = bundle;
+
+            if(firstLoad == false) {
 
                 if(mEmptyScreen.getVisibility() == View.VISIBLE){
 
@@ -219,14 +240,16 @@ public class MovieThumbsFragment extends Fragment implements LoaderManager.Loade
                 }
 
                 getLoaderManager().restartLoader(LOADER_ID, bundle, this).forceLoad();
+            }
+            else {
+
+                getLoaderManager().initLoader(LOADER_ID, bundle, this).forceLoad();
+
+                firstLoad = false;
+
+            }
         }
-        else {
 
-            getLoaderManager().initLoader(LOADER_ID, bundle, this).forceLoad();
-
-            firstLoad = false;
-
-        }
 
     }
 

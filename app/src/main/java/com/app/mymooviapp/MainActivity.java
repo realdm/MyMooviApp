@@ -106,6 +106,15 @@ public class MainActivity extends AppCompatActivity implements MovieThumbsFragme
 
             maxRating = (TextView)mHeaderLayout.findViewById(R.id.max_rating);
 
+            if(savedInstanceState!=null){
+
+                mSelectedMovie = savedInstanceState.getParcelable("movie");
+                if(mSelectedMovie!=null){
+                    setMovieHeaderDetails(mSelectedMovie);
+                }
+
+            }
+
         }
         else {
 
@@ -118,6 +127,12 @@ public class MainActivity extends AppCompatActivity implements MovieThumbsFragme
 
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Log.i("MainActivity","State saved from activity");
+        outState.putParcelable("movie",mSelectedMovie);
+    }
 
     public void setUpToolbar(boolean isTwoPane)
     {
@@ -137,6 +152,9 @@ public class MainActivity extends AppCompatActivity implements MovieThumbsFragme
                             ((MovieDetailsFrag) movieDetailsFragment).favoriteMovie();
 
                             break;
+                        }
+                        case R.id.action_share:{
+                            ((MovieDetailsFrag) movieDetailsFragment).shareMovieTrailer();
                         }
 
                     }
@@ -200,31 +218,13 @@ public class MainActivity extends AppCompatActivity implements MovieThumbsFragme
 
         bundle.putParcelable("movie", movie);
 
+        mSelectedMovie = movie;
 
 
         if(isTwoPane) {
             //send data to the other fragment
-            mHeaderLayout.setVisibility(View.VISIBLE);
 
-            String backdropUrl = Constants.BACKDROP_URL_BASE_PATH+movie.getBackDropPath();
-
-            Picasso.with(getApplicationContext()).load(backdropUrl).into(headerImageView);
-
-            float rating = movie.getUserRating();
-
-            if(rating > 9){
-                maxRating.setVisibility(View.GONE);
-
-            }
-            else{
-                if(maxRating.getVisibility() != View.VISIBLE){
-                    maxRating.setVisibility(View.VISIBLE);
-
-                }
-            }
-            mCurentRating.setText(Float.toString(rating));
-
-
+            setMovieHeaderDetails(movie);
             ((MovieDetailsFrag)movieDetailsFragment).loadMovieDetails(bundle);
         }
         else {
@@ -240,6 +240,29 @@ public class MainActivity extends AppCompatActivity implements MovieThumbsFragme
     public void onMovieFavorite(boolean isFavorite) {
 
         tintFavoriteStar(isFavorite);
+    }
+
+    public void setMovieHeaderDetails(Movie movie){
+
+        mHeaderLayout.setVisibility(View.VISIBLE);
+
+        String backdropUrl = Constants.BACKDROP_URL_BASE_PATH+movie.getBackDropPath();
+
+        Picasso.with(getApplicationContext()).load(backdropUrl).into(headerImageView);
+
+        float rating = movie.getUserRating();
+
+        if(rating > 9){
+            maxRating.setVisibility(View.GONE);
+
+        }
+        else{
+            if(maxRating.getVisibility() != View.VISIBLE){
+                maxRating.setVisibility(View.VISIBLE);
+
+            }
+        }
+        mCurentRating.setText(Float.toString(rating));
     }
 
     public void tintFavoriteStar(boolean favorite)

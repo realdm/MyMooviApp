@@ -129,6 +129,9 @@ public class MovieDetails extends AppCompatActivity implements MovieDetailsFrag.
                         ((MovieDetailsFrag) fragment).favoriteMovie();
                         break;
                     }
+                    case R.id.action_share:{
+                        ((MovieDetailsFrag) fragment).shareMovieTrailer();
+                    }
                 }
                 return true;
             }

@@ -84,6 +84,8 @@ public class MovieDetailsFrag extends Fragment implements LoaderManager.LoaderCa
 
     private final int LOADER_ID=2;
 
+    private final String MOVIE_KEY="movie";
+
     public static MovieDetailsFrag newInstance() {
         return new MovieDetailsFrag();
     }
@@ -103,18 +105,20 @@ public class MovieDetailsFrag extends Fragment implements LoaderManager.LoaderCa
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        bundle = getArguments();
+            bundle = getArguments();
 
-        movieHandler = new MovieHandler(getActivity().getApplicationContext());
+            movieHandler = new MovieHandler(getActivity().getApplicationContext());
 
-        mtrailerAdapter = new SimpleTrailerAdapter(getActivity().getApplicationContext());
+            mtrailerAdapter = new SimpleTrailerAdapter(getActivity().getApplicationContext());
 
-        mCastListAdapter = new CastListAdapter(getActivity().getApplicationContext());
+            mCastListAdapter = new CastListAdapter(getActivity().getApplicationContext());
 
-        if(bundle!=null){
+            if(bundle!=null){
 
-            getLoaderManager().initLoader(LOADER_ID,bundle,this).forceLoad();
-        }
+                getLoaderManager().initLoader(LOADER_ID,bundle,this).forceLoad();
+            }
+
+
     }
 
     @Nullable
@@ -126,9 +130,18 @@ public class MovieDetailsFrag extends Fragment implements LoaderManager.LoaderCa
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-            initFields(view);
+
+        if(savedInstanceState!=null){
+                bundle = savedInstanceState;
+        }
+        initFields(view);
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable(MOVIE_KEY, movie);
+    }
 
     public void initFields(View view)
     {
@@ -185,15 +198,31 @@ public class MovieDetailsFrag extends Fragment implements LoaderManager.LoaderCa
 
         mCastList = (ListView)cast.findViewById(R.id.list);
 
-        if(bundle==null){
-            mEmptyIcon.setImageDrawable(getResources().getDrawable(R.drawable.no_details));
-            mErrorMessage.setText("");
-            mErrorDescription.setText("Please Select a movie on your left");
+        if(bundle!=null){
+            movie = bundle.getParcelable(MOVIE_KEY);
+            if(movie!=null){
+                fillData(movie);
+                crossfade(mDetailsLayout,mProgressBar);
+            }
+            else{
+                customizeEmptyScreen(R.drawable.no_movie,"Please Select a Movie on your Left");
+                crossfade(emptyLayout,mProgressBar);
+            }
+
+        }else{
+
+            customizeEmptyScreen(R.drawable.no_movie,"Please Select a Movie on your Left");
             crossfade(emptyLayout,mProgressBar);
         }
 
     }
 
+    public void customizeEmptyScreen(int icon, String text)
+    {
+        mEmptyIcon.setImageDrawable(getResources().getDrawable(icon));
+        mErrorMessage.setText("");
+        mErrorDescription.setText(text);
+    }
 
     public void fillData(Movie movie) {
 
@@ -217,7 +246,7 @@ public class MovieDetailsFrag extends Fragment implements LoaderManager.LoaderCa
     @Override
     public Loader<Movie> onCreateLoader(int id, Bundle args) {
 
-        Movie movie = (Movie)args.getParcelable("movie");
+        Movie movie = (Movie)args.getParcelable(MOVIE_KEY);
 
         MovieDetailsLoader loader = new MovieDetailsLoader(getActivity(),movie);
 
@@ -236,7 +265,6 @@ public class MovieDetailsFrag extends Fragment implements LoaderManager.LoaderCa
 
             loadedSuccessfully = true;
 
-            Log.i("MovieDetails","Movie is favorited: "+movie.isFavorited());
 
             mMovieFavoritedCallback.onMovieFavorite(movie.isFavorited());
 
@@ -293,6 +321,15 @@ public class MovieDetailsFrag extends Fragment implements LoaderManager.LoaderCa
             movie.setFavorited(!favorite);
         }
 
+    }
+
+    public void shareMovieTrailer(){
+        if(loadedSuccessfully){
+            Intent sendIntent = new Intent(Intent.ACTION_SEND);
+            sendIntent.setType("text/plain");
+            sendIntent.putExtra(Intent.EXTRA_TEXT,"https://www.youtube.com/watch?v="+movie.getTrailers().get(0).getSource());
+            getActivity().startActivity(sendIntent);
+        }
     }
 
     public interface OnMovieFavorited{
