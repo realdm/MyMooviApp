@@ -133,6 +133,8 @@ public class MovieDetailsFrag extends Fragment implements LoaderManager.LoaderCa
 
         if(savedInstanceState!=null){
                 bundle = savedInstanceState;
+                isFirstLoad = bundle.getBoolean("isFirstLoad");
+                Log.i("MovieDetailsFrag","Is first loaded from state: "+isFirstLoad);
         }
         initFields(view);
     }
@@ -141,6 +143,8 @@ public class MovieDetailsFrag extends Fragment implements LoaderManager.LoaderCa
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelable(MOVIE_KEY, movie);
+        outState.putBoolean("isFirstLoad", isFirstLoad);
+        Log.i("MovieDetailsFrag","IS firstLoaded "+isFirstLoad);
     }
 
     public void initFields(View view)
@@ -201,6 +205,7 @@ public class MovieDetailsFrag extends Fragment implements LoaderManager.LoaderCa
         if(bundle!=null){
             movie = bundle.getParcelable(MOVIE_KEY);
             if(movie!=null){
+
                 fillData(movie);
                 crossfade(mDetailsLayout,mProgressBar);
             }
@@ -258,13 +263,11 @@ public class MovieDetailsFrag extends Fragment implements LoaderManager.LoaderCa
 
         if(data!=null) {
 
-
             fillData(data);
 
             movie = data;
 
             loadedSuccessfully = true;
-
 
             mMovieFavoritedCallback.onMovieFavorite(movie.isFavorited());
 
@@ -281,9 +284,11 @@ public class MovieDetailsFrag extends Fragment implements LoaderManager.LoaderCa
     public void loadMovieDetails(Bundle bundle)
     {
 
+        Log.i("MovieDetailsFrag","loading movie details");
         if(isFirstLoad){
 
-            getLoaderManager().initLoader(2,bundle,this).forceLoad();
+            Log.i("MovieDetailsFRag","Reloaded the movie");
+            getLoaderManager().initLoader(LOADER_ID,bundle,this).forceLoad();
 
             isFirstLoad = !isFirstLoad;
 
@@ -294,7 +299,8 @@ public class MovieDetailsFrag extends Fragment implements LoaderManager.LoaderCa
         }
         else
         {
-            getLoaderManager().restartLoader(2,bundle,this).forceLoad();
+            Log.i("MovieDetailsFrag","It's not first load");
+            getLoaderManager().restartLoader(LOADER_ID,bundle,this).forceLoad();
             crossfade(mProgressBar,mDetailsLayout);
         }
 

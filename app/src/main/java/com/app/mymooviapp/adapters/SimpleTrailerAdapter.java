@@ -28,7 +28,6 @@ public class SimpleTrailerAdapter extends BaseAdapter {
     }
 
     public void setData(List<Trailer> newTrailers){
-
         this.trailers = newTrailers;
         notifyDataSetChanged();
     }

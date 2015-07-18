@@ -224,6 +224,7 @@ public class MainActivity extends AppCompatActivity implements MovieThumbsFragme
         if(isTwoPane) {
             //send data to the other fragment
 
+            Log.i("MainActivity","Movie selected and title is:"+mSelectedMovie.getTitle());
             setMovieHeaderDetails(movie);
             ((MovieDetailsFrag)movieDetailsFragment).loadMovieDetails(bundle);
         }
