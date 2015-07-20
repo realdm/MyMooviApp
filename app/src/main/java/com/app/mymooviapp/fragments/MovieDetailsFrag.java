@@ -2,6 +2,7 @@ package com.app.mymooviapp.fragments;
 
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -19,6 +20,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.app.mymooviapp.R;
 import com.app.mymooviapp.adapters.CastListAdapter;
@@ -191,7 +193,13 @@ public class MovieDetailsFrag extends Fragment implements LoaderManager.LoaderCa
                 String mYoutubeId = (String) parent.getItemAtPosition(position);
                 Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + mYoutubeId));
                 intent.putExtra("VIDEO_ID", mYoutubeId);
-                startActivity(intent);
+                try{
+                    startActivity(intent);
+                }
+                catch (ActivityNotFoundException e){
+                    Toast.makeText(getActivity(), "Youtube not Found, Please install it before watching a video",Toast.LENGTH_LONG).show();
+                }
+
             }
         });
 
