@@ -5,7 +5,7 @@ package com.app.mymooviapp.utils;
  */
 public class Constants {
 
-    public static final String API_KEY="e6a19d1b2b629a804e4a426d6c5a3410";
+    public static final String API_KEY="";
 
     public static final String BASE_URL = "http://api.themoviedb.org/3/discover/movie?";
 
